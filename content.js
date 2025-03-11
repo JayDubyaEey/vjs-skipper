@@ -1,21 +1,22 @@
-function skipVjsVideos() {
-  const vjsVideos = document.querySelectorAll('video.video-js');
-
-  vjsVideos.forEach(video => {
-    if (video && video.duration && !isNaN(video.duration)) {
-      // Jump to the end of the video
-      video.currentTime = video.duration;
-    } else {
-      // Listen for metadata loading if duration is not yet available
-      video.addEventListener('loadedmetadata', () => {
-        video.currentTime = video.duration;
-      });
-    }
-  });
+function forceSkipVideos() {
+    const videos = document.querySelectorAll('video.vjs-tech');
+    videos.forEach(video => {
+        if (video.readyState > 0) {
+            video.pause();
+            video.currentTime = video.duration || 99999;
+            video.dispatchEvent(new Event('ended'));
+        } else {
+            video.addEventListener('loadedmetadata', () => {
+                video.pause();
+                video.currentTime = video.duration || 99999;
+                video.dispatchEvent(new Event('ended'));
+            });
+        }
+    });
+    const skipButtons = document.querySelectorAll('button.skip-video-controllers, button.vjs-ended');
+    skipButtons.forEach(btn => btn.click());
 }
-
-// Run the function immediately when the page loads
-window.addEventListener('load', skipVjsVideos);
-
-// Also periodically check for dynamically loaded videos (optional)
-setInterval(skipVjsVideos, 3000); // every 3 seconds
+window.addEventListener('load', () => {
+    forceSkipVideos();
+    setInterval(forceSkipVideos, 2000);
+});
